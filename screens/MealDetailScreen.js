@@ -1,58 +1,71 @@
-import { NavigationContainer } from '@react-navigation/native';
-import { useLayoutEffect } from 'react';
-import { View, Text, Image, StyleSheet, ScrollView } from 'react-native';
-import IconButton from '../components/IconButton';
-import List from '../components/MealDetail/List';
-import Subtitle from '../components/MealDetail/Subtitle';
-import MealDetails from '../components/MealDetails';
+import { useContext, useLayoutEffect } from "react";
+import { View, Text, Image, StyleSheet, ScrollView } from "react-native";
+import IconButton from "../components/IconButton";
+import List from "../components/MealDetail/List";
+import Subtitle from "../components/MealDetail/Subtitle";
+import MealDetails from "../components/MealDetails";
 
-import { MEALS } from '../data/dummy-data';
+import { MEALS } from "../data/dummy-data";
+import { FavoritesContext } from "../store/context/favorites-context";
 
-function MealDetailScreen ({ route, navigation }){
-    const mealId = route.params.mealId;
+function MealDetailScreen({ route, navigation }) {
+  const favoriteMealsCtx = useContext(FavoritesContext);
 
-    const selectedMeal = MEALS.find((meal) => meal.id === mealId);
+  const mealId = route.params.mealId;
+  const selectedMeal = MEALS.find((meal) => meal.id === mealId);
 
-    function headerButtonHandler(){
-        console.log('Pressed!');
-    };
+  const mealIsFavorite = favoriteMealsCtx.ids.includes(mealId);
 
-    useLayoutEffect (() => {
-        navigation.setOptions({
-            headerRight: () => {
-                return <IconButton icon="star" color="white" onPress={headerButtonHandler}/>;
-            }
-        });
-    }, [navigation, headerButtonHandler]);
+  function changeFavoriteHandler() {
+    if (mealIsFavorite) {
+      favoriteMealsCtx.removeFavorite(mealId);
+    } else {
+      favoriteMealsCtx.addFavorite(mealId);
+    }
+  }
 
-    return (
-      <ScrollView style={styles.rootContainer}>
-        <Image style={styles.image} source={{ uri: selectedMeal.imageUrl }} />
-        <Text style={styles.title}>{selectedMeal.title}</Text>
-        <MealDetails
-          duration={selectedMeal.duration}
-          complexity={selectedMeal.complexity}
-          affordability={selectedMeal.affordability}
-          textStyle={styles.detailText}
-        />
-        <View style={styles.outterContainer}>
-          <View style={styles.listContainer}>
-            <Subtitle>Ingredients</Subtitle>
-            <List data={selectedMeal.ingredients} />
-            <Subtitle>Steps</Subtitle>
-            <List data={selectedMeal.steps} />
-          </View>
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => {
+        return (
+          <IconButton
+            icon={mealIsFavorite ? "star" : "star-outline"}
+            color="white"
+            onPress={changeFavoriteHandler}
+          />
+        );
+      },
+    });
+  }, [navigation, changeFavoriteHandler]);
+
+  return (
+    <ScrollView style={styles.rootContainer}>
+      <Image style={styles.image} source={{ uri: selectedMeal.imageUrl }} />
+      <Text style={styles.title}>{selectedMeal.title}</Text>
+      <MealDetails
+        duration={selectedMeal.duration}
+        complexity={selectedMeal.complexity}
+        affordability={selectedMeal.affordability}
+        textStyle={styles.detailText}
+      />
+      <View style={styles.outterContainer}>
+        <View style={styles.listContainer}>
+          <Subtitle>Ingredients</Subtitle>
+          <List data={selectedMeal.ingredients} />
+          <Subtitle>Steps</Subtitle>
+          <List data={selectedMeal.steps} />
         </View>
-      </ScrollView>
-    );
+      </View>
+    </ScrollView>
+  );
 }
 
 export default MealDetailScreen;
 
 const styles = StyleSheet.create({
-rootContainer: {
-    marginBottom: 30
-},
+  rootContainer: {
+    marginBottom: 30,
+  },
   image: {
     width: "100%",
     height: 350,
@@ -68,9 +81,9 @@ rootContainer: {
     color: "white",
   },
   outterContainer: {
-    alignItems: 'center'
+    alignItems: "center",
   },
   listContainer: {
-      width: '80%'
-  }
+    width: "80%",
+  },
 });
